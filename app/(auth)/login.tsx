@@ -7,12 +7,13 @@ import {
     Platform,
     StyleSheet,
     Text,
-    TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
+import FormField from '../../components/FormField';
 import { db } from '../../db/client';
 import { users } from '../../db/schema';
+import { setSessionUserId } from '../../lib/session';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -24,13 +25,17 @@ export default function LoginScreen() {
       return;
     }
 
-    const result = await db.select().from(users).where(eq(users.email, email.toLowerCase().trim()));
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email.toLowerCase().trim()));
 
     if (result.length === 0 || result[0].password !== password) {
       Alert.alert('Login failed', 'Incorrect email or password');
       return;
     }
 
+    await setSessionUserId(String(result[0].id));
     router.replace('/(tabs)');
   };
 
@@ -43,30 +48,29 @@ export default function LoginScreen() {
         <Text style={styles.title}>Golf Tracker</Text>
         <Text style={styles.subtitle}>Track your game, improve your scores</Text>
 
-        <TextInput
-          style={styles.input}
+        <FormField
+          label="Email"
           placeholder="Email"
-          placeholderTextColor="#888"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
         />
-        <TextInput
-          style={styles.input}
+
+        <FormField
+          label="Password"
           placeholder="Password"
-          placeholderTextColor="#888"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
         />
 
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Log In</Text>
+          <Text style={styles.buttonText}>Log in</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-          <Text style={styles.link}>Don't have an account? Register</Text>
+          <Text style={styles.link}>Don&apos;t have an account? Register</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -92,16 +96,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: '#81c784',
-    marginBottom: 40,
-  },
-  input: {
-    backgroundColor: '#1b3a1b',
-    color: '#e8f5e9',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
-    marginBottom: 14,
+    marginBottom: 32,
   },
   button: {
     backgroundColor: '#2e7d32',

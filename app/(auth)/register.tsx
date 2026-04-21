@@ -7,12 +7,13 @@ import {
     Platform,
     StyleSheet,
     Text,
-    TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
+import FormField from '../../components/FormField';
 import { db } from '../../db/client';
 import { users } from '../../db/schema';
+import { setSessionUserId } from '../../lib/session';
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
@@ -25,7 +26,10 @@ export default function RegisterScreen() {
       return;
     }
 
-    const existing = await db.select().from(users).where(eq(users.email, email.toLowerCase().trim()));
+    const existing = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email.toLowerCase().trim()));
 
     if (existing.length > 0) {
       Alert.alert('Account exists', 'An account with that email already exists');
@@ -39,6 +43,17 @@ export default function RegisterScreen() {
       createdAt: new Date().toISOString(),
     });
 
+    const createdUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email.toLowerCase().trim()));
+
+    if (createdUser.length === 0) {
+      Alert.alert('Error', 'Could not complete registration');
+      return;
+    }
+
+    await setSessionUserId(String(createdUser[0].id));
     router.replace('/(tabs)');
   };
 
@@ -48,36 +63,35 @@ export default function RegisterScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.inner}>
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Start tracking your golf game</Text>
+        <Text style={styles.title}>Create account</Text>
+        <Text style={styles.subtitle}>Start tracking your golf habits</Text>
 
-        <TextInput
-          style={styles.input}
+        <FormField
+          label="Full name"
           placeholder="Full name"
-          placeholderTextColor="#888"
           value={name}
           onChangeText={setName}
         />
-        <TextInput
-          style={styles.input}
+
+        <FormField
+          label="Email"
           placeholder="Email"
-          placeholderTextColor="#888"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
         />
-        <TextInput
-          style={styles.input}
+
+        <FormField
+          label="Password"
           placeholder="Password"
-          placeholderTextColor="#888"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
         />
 
         <TouchableOpacity style={styles.button} onPress={handleRegister}>
-          <Text style={styles.buttonText}>Create Account</Text>
+          <Text style={styles.buttonText}>Create account</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
@@ -107,16 +121,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: '#81c784',
-    marginBottom: 40,
-  },
-  input: {
-    backgroundColor: '#1b3a1b',
-    color: '#e8f5e9',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
-    marginBottom: 14,
+    marginBottom: 32,
   },
   button: {
     backgroundColor: '#2e7d32',

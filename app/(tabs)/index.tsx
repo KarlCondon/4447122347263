@@ -170,17 +170,30 @@ export default function ActivityScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View>
+        <View style={styles.headerTextWrap}>
           <Text style={styles.heading}>Activity</Text>
           <Text style={styles.subheading}>Your recent golf habit logs</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => router.push('/logs/add')}
-        >
-          <Text style={styles.addButtonText}>Add log</Text>
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity
+            style={styles.accountButton}
+            onPress={() =>
+  router.push({
+    pathname: '/profile',
+  })
+}
+          >
+            <Text style={styles.accountButtonText}>Account</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => router.push('/logs/add')}
+          >
+            <Text style={styles.addButtonText}>Add log</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -305,6 +318,10 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 18,
   },
+  headerTextWrap: {
+    flex: 1,
+    marginRight: 12,
+  },
   heading: {
     color: '#eef6ee',
     fontSize: 32,
@@ -314,6 +331,21 @@ const styles = StyleSheet.create({
   subheading: {
     color: '#8fb58f',
     fontSize: 14,
+  },
+  headerButtons: {
+    alignItems: 'flex-end',
+  },
+  accountButton: {
+    backgroundColor: '#1a2b1b',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 8,
+  },
+  accountButtonText: {
+    color: '#d6dfd6',
+    fontSize: 13,
+    fontWeight: '600',
   },
   addButton: {
     backgroundColor: '#1c5f27',
