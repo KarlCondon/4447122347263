@@ -1,5 +1,7 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { eq } from 'drizzle-orm';
-import { useEffect, useState } from 'react';
+import { router } from 'expo-router';
+import { useCallback, useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -23,22 +25,23 @@ type LogEntry = {
   score: number | null;
 };
 
-export default function HomeScreen() {
+export default function ActivityScreen() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
   const loadLogs = async () => {
     const allLogs = await db.select().from(habitLogs);
     const allHabits = await db.select().from(habits);
-    const allCats = await db.select().from(categories);
+    const allCategories = await db.select().from(categories);
 
     const merged = allLogs.map(log => {
-      const habit = allHabits.find(h => h.id === log.habitId);
-      const cat = allCats.find(c => c.id === habit?.categoryId);
+      const habit = allHabits.find(item => item.id === log.habitId);
+      const category = allCategories.find(item => item.id === habit?.categoryId);
+
       return {
         id: log.id,
         habitName: habit?.name ?? 'Unknown',
-        categoryName: cat?.name ?? 'Unknown',
-        categoryColour: cat?.colour ?? '#888',
+        categoryName: category?.name ?? 'Unknown',
+        categoryColour: category?.colour ?? '#888',
         date: log.date,
         count: log.count,
         duration: log.duration,
@@ -51,15 +54,19 @@ export default function HomeScreen() {
     setLogs(merged);
   };
 
-  useEffect(() => {
-    loadLogs();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadLogs();
+    }, [])
+  );
 
   const formatDate = (dateStr: string) => {
     const parts = dateStr.split('-');
+
     if (parts.length === 3) {
       return `${parts[2]}/${parts[1]}/${parts[0]}`;
     }
+
     return dateStr;
   };
 
@@ -80,16 +87,21 @@ export default function HomeScreen() {
   const renderItem = ({ item }: { item: LogEntry }) => (
     <View style={styles.card}>
       <View style={[styles.dot, { backgroundColor: item.categoryColour }]} />
+
       <View style={styles.cardContent}>
         <Text style={styles.habitName}>{item.habitName}</Text>
         <Text style={styles.category}>{item.categoryName}</Text>
         <Text style={styles.date}>{formatDate(item.date)}</Text>
+
         {item.notes ? <Text style={styles.notes}>{item.notes}</Text> : null}
+
         <View style={styles.metaRow}>
+          <Text style={styles.meta}>Count: {item.count}</Text>
           {item.duration ? <Text style={styles.meta}>{item.duration} mins</Text> : null}
           {item.score ? <Text style={styles.meta}>Score: {item.score}</Text> : null}
         </View>
       </View>
+
       <TouchableOpacity onPress={() => handleDelete(item.id)}>
         <Text style={styles.deleteBtn}>Delete</Text>
       </TouchableOpacity>
@@ -98,11 +110,23 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Activity Log</Text>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.heading}>Activity</Text>
+          <Text style={styles.subheading}>Your recent golf habit logs</Text>
+        </View>
+
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => router.push('/logs/add')}
+        >
+          <Text style={styles.addButtonText}>Add log</Text>
+        </TouchableOpacity>
+      </View>
 
       {logs.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>No logs yet. Start tracking!</Text>
+          <Text style={styles.emptyText}>No logs yet. Add your first one.</Text>
         </View>
       ) : (
         <FlatList
@@ -119,68 +143,94 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f1f0f',
+    backgroundColor: '#081f08',
     paddingTop: 60,
     paddingHorizontal: 16,
   },
-  heading: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#e8f5e9',
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 20,
   },
+  heading: {
+    color: '#eef6ee',
+    fontSize: 32,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  subheading: {
+    color: '#8fb58f',
+    fontSize: 14,
+  },
+  addButton: {
+    backgroundColor: '#1c5f27',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  addButtonText: {
+    color: '#eef6ee',
+    fontSize: 13,
+    fontWeight: '600',
+  },
   card: {
-    backgroundColor: '#1b3a1b',
-    borderRadius: 12,
-    padding: 14,
+    backgroundColor: '#102d12',
+    borderRadius: 16,
+    padding: 16,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#1f4824',
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     marginTop: 5,
-    marginRight: 10,
+    marginRight: 12,
   },
   cardContent: {
     flex: 1,
   },
   habitName: {
-    color: '#e8f5e9',
-    fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 2,
+    color: '#eef6ee',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 3,
   },
   category: {
-    color: '#81c784',
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  date: {
-    color: '#a5d6a7',
+    color: '#8fb58f',
     fontSize: 13,
+    fontWeight: '600',
     marginBottom: 4,
   },
-  notes: {
-    color: '#a5d6a7',
+  date: {
+    color: '#b9cfb9',
     fontSize: 13,
     marginBottom: 6,
   },
+  notes: {
+    color: '#d6e2d6',
+    fontSize: 13,
+    marginBottom: 8,
+  },
   metaRow: {
     flexDirection: 'row',
-    gap: 12,
+    flexWrap: 'wrap',
   },
   meta: {
-    color: '#4a6741',
+    color: '#89a589',
     fontSize: 12,
+    marginRight: 12,
+    marginBottom: 4,
   },
   deleteBtn: {
-    color: '#e57373',
+    color: '#f28d8d',
     fontSize: 13,
     fontWeight: '600',
+    marginLeft: 10,
   },
   empty: {
     flex: 1,
@@ -188,7 +238,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    color: '#4a6741',
+    color: '#89a589',
     fontSize: 15,
   },
 });
