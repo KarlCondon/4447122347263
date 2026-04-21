@@ -102,9 +102,22 @@ export default function ActivityScreen() {
         </View>
       </View>
 
-      <TouchableOpacity onPress={() => handleDelete(item.id)}>
-        <Text style={styles.deleteBtn}>Delete</Text>
-      </TouchableOpacity>
+      <View style={styles.cardActions}>
+       <TouchableOpacity
+  onPress={() =>
+    router.push({
+      pathname: '/logs/edit',
+      params: { id: String(item.id) },
+    })
+  }
+>
+  <Text style={styles.editBtn}>Edit</Text>
+</TouchableOpacity>
+
+        <TouchableOpacity onPress={() => handleDelete(item.id)}>
+          <Text style={styles.deleteBtn}>Delete</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -226,11 +239,19 @@ const styles = StyleSheet.create({
     marginRight: 12,
     marginBottom: 4,
   },
+  cardActions: {
+    marginLeft: 10,
+  },
+  editBtn: {
+    color: '#9cd19f',
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 10,
+  },
   deleteBtn: {
     color: '#f28d8d',
     fontSize: 13,
     fontWeight: '600',
-    marginLeft: 10,
   },
   empty: {
     flex: 1,
