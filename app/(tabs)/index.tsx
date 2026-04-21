@@ -1,21 +1,31 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { eq } from 'drizzle-orm';
 import { router } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   FlatList,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import FormField from '../../components/FormField';
 import { db } from '../../db/client';
 import { categories, habitLogs, habits } from '../../db/schema';
 
+type Category = {
+  id: number;
+  name: string;
+  colour: string;
+};
+
 type LogEntry = {
   id: number;
+  habitId: number;
   habitName: string;
+  categoryId: number | null;
   categoryName: string;
   categoryColour: string;
   date: string;
@@ -27,6 +37,12 @@ type LogEntry = {
 
 export default function ActivityScreen() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [categoryList, setCategoryList] = useState<Category[]>([]);
+
+  const [searchText, setSearchText] = useState('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const loadLogs = async () => {
     const allLogs = await db.select().from(habitLogs);
@@ -39,7 +55,9 @@ export default function ActivityScreen() {
 
       return {
         id: log.id,
+        habitId: log.habitId,
         habitName: habit?.name ?? 'Unknown',
+        categoryId: category?.id ?? null,
         categoryName: category?.name ?? 'Unknown',
         categoryColour: category?.colour ?? '#888',
         date: log.date,
@@ -51,7 +69,9 @@ export default function ActivityScreen() {
     });
 
     merged.sort((a, b) => b.date.localeCompare(a.date));
+
     setLogs(merged);
+    setCategoryList(allCategories);
   };
 
   useFocusEffect(
@@ -59,6 +79,25 @@ export default function ActivityScreen() {
       loadLogs();
     }, [])
   );
+
+  const filteredLogs = useMemo(() => {
+    const search = searchText.trim().toLowerCase();
+
+    return logs.filter(log => {
+      const matchesSearch =
+        !search ||
+        log.habitName.toLowerCase().includes(search) ||
+        (log.notes ?? '').toLowerCase().includes(search);
+
+      const matchesCategory =
+        selectedCategoryId === null || log.categoryId === selectedCategoryId;
+
+      const matchesStartDate = !startDate.trim() || log.date >= startDate.trim();
+      const matchesEndDate = !endDate.trim() || log.date <= endDate.trim();
+
+      return matchesSearch && matchesCategory && matchesStartDate && matchesEndDate;
+    });
+  }, [logs, searchText, selectedCategoryId, startDate, endDate]);
 
   const formatDate = (dateStr: string) => {
     const parts = dateStr.split('-');
@@ -68,6 +107,13 @@ export default function ActivityScreen() {
     }
 
     return dateStr;
+  };
+
+  const clearFilters = () => {
+    setSearchText('');
+    setSelectedCategoryId(null);
+    setStartDate('');
+    setEndDate('');
   };
 
   const handleDelete = (id: number) => {
@@ -103,16 +149,16 @@ export default function ActivityScreen() {
       </View>
 
       <View style={styles.cardActions}>
-       <TouchableOpacity
-  onPress={() =>
-    router.push({
-      pathname: '/logs/edit',
-      params: { id: String(item.id) },
-    })
-  }
->
-  <Text style={styles.editBtn}>Edit</Text>
-</TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            router.push({
+              pathname: '/logs/edit',
+              params: { id: String(item.id) },
+            })
+          }
+        >
+          <Text style={styles.editBtn}>Edit</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity onPress={() => handleDelete(item.id)}>
           <Text style={styles.deleteBtn}>Delete</Text>
@@ -137,16 +183,109 @@ export default function ActivityScreen() {
         </TouchableOpacity>
       </View>
 
-      {logs.length === 0 ? (
+      <ScrollView
+        style={styles.filtersPanel}
+        contentContainerStyle={styles.filtersContent}
+        horizontal={false}
+        showsVerticalScrollIndicator={false}
+      >
+        <FormField
+          label="Search"
+          placeholder="Search by habit or notes"
+          value={searchText}
+          onChangeText={setSearchText}
+        />
+
+        <Text style={styles.filterLabel}>Category</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryFilterRow}
+        >
+          <TouchableOpacity
+            style={[
+              styles.categoryChip,
+              selectedCategoryId === null && styles.categoryChipActive,
+            ]}
+            onPress={() => setSelectedCategoryId(null)}
+          >
+            <Text
+              style={[
+                styles.categoryChipText,
+                selectedCategoryId === null && styles.categoryChipTextActive,
+              ]}
+            >
+              All
+            </Text>
+          </TouchableOpacity>
+
+          {categoryList.map(category => {
+            const active = selectedCategoryId === category.id;
+
+            return (
+              <TouchableOpacity
+                key={category.id}
+                style={[
+                  styles.categoryChip,
+                  active && styles.categoryChipActive,
+                ]}
+                onPress={() => setSelectedCategoryId(category.id)}
+              >
+                <View
+                  style={[
+                    styles.categoryChipDot,
+                    { backgroundColor: category.colour },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.categoryChipText,
+                    active && styles.categoryChipTextActive,
+                  ]}
+                >
+                  {category.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        <View style={styles.dateRow}>
+          <View style={styles.dateField}>
+            <FormField
+              label="Start date"
+              placeholder="YYYY-MM-DD"
+              value={startDate}
+              onChangeText={setStartDate}
+            />
+          </View>
+
+          <View style={styles.dateField}>
+            <FormField
+              label="End date"
+              placeholder="YYYY-MM-DD"
+              value={endDate}
+              onChangeText={setEndDate}
+            />
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.clearButton} onPress={clearFilters}>
+          <Text style={styles.clearButtonText}>Clear filters</Text>
+        </TouchableOpacity>
+      </ScrollView>
+
+      {filteredLogs.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>No logs yet. Add your first one.</Text>
+          <Text style={styles.emptyText}>No logs match your filters.</Text>
         </View>
       ) : (
         <FlatList
-          data={logs}
+          data={filteredLogs}
           keyExtractor={item => item.id.toString()}
           renderItem={renderItem}
           contentContainerStyle={{ paddingBottom: 20 }}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
@@ -164,7 +303,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 20,
+    marginBottom: 18,
   },
   heading: {
     color: '#eef6ee',
@@ -184,6 +323,74 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     color: '#eef6ee',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  filtersPanel: {
+    maxHeight: 265,
+    marginBottom: 14,
+  },
+  filtersContent: {
+    backgroundColor: '#102d12',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#1f4824',
+  },
+  filterLabel: {
+    color: '#dce8dc',
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  categoryFilterRow: {
+    paddingBottom: 8,
+  },
+  categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#173a19',
+    borderWidth: 1,
+    borderColor: '#244d27',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    marginRight: 8,
+  },
+  categoryChipActive: {
+    backgroundColor: '#1f5a25',
+    borderColor: '#5faa65',
+  },
+  categoryChipDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 8,
+  },
+  categoryChipText: {
+    color: '#b8cbb8',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  categoryChipTextActive: {
+    color: '#eef6ee',
+  },
+  dateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  dateField: {
+    width: '48%',
+  },
+  clearButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#1a2b1b',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  clearButtonText: {
+    color: '#d6dfd6',
     fontSize: 13,
     fontWeight: '600',
   },
