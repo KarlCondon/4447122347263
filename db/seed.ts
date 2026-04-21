@@ -1,36 +1,44 @@
 import { db } from './client';
-import { categories, sessions, targets } from './schema';
+import { categories, habitLogs, habits, targets } from './schema';
 
 export async function seedIfEmpty() {
   const existingCategories = await db.select().from(categories);
   if (existingCategories.length > 0) return;
 
-  await db.insert(categories).values([
-    { name: 'Range Practice', colour: '#2d6a4f' },
-    { name: 'Short Game', colour: '#52b788' },
-    { name: 'Course Play', colour: '#1b4332' },
-    { name: 'Fitness', colour: '#74c69d' },
-    { name: 'Mental Game', colour: '#40916c' },
-  ]);
+  await db.insert(categories).values({ name: 'Practice', colour: '#2d6a4f' });
+  await db.insert(categories).values({ name: 'Short Game', colour: '#52b788' });
+  await db.insert(categories).values({ name: 'Course Play', colour: '#1b4332' });
+  await db.insert(categories).values({ name: 'Fitness', colour: '#74c69d' });
+  await db.insert(categories).values({ name: 'Mental Game', colour: '#40916c' });
 
   const cats = await db.select().from(categories);
-  const range = cats.find(c => c.name === 'Range Practice')!;
-  const short = cats.find(c => c.name === 'Short Game')!;
-  const course = cats.find(c => c.name === 'Course Play')!;
+  const practice = cats.find(c => c.name === 'Practice')!;
+  const shortGame = cats.find(c => c.name === 'Short Game')!;
+  const coursePlay = cats.find(c => c.name === 'Course Play')!;
   const fitness = cats.find(c => c.name === 'Fitness')!;
+  const mental = cats.find(c => c.name === 'Mental Game')!;
 
-  await db.insert(sessions).values([
-    { categoryId: range.id, date: '01/04/2026', duration: 60, notes: 'Driver was all over the place, need to slow down the backswing', holesPlayed: null, score: null, createdAt: '2026-04-01T09:00:00' },
-    { categoryId: short.id, date: '02/04/2026', duration: 45, notes: 'Putting felt very good today, chipping still inconsistent from tight lies', holesPlayed: null, score: null, createdAt: '2026-04-02T10:00:00' },
-    { categoryId: course.id, date: '05/04/2026', duration: 240, notes: 'Played Fota, started well then fell apart on the back 9', holesPlayed: 18, score: 86, createdAt: '2026-04-05T08:00:00' },
-    { categoryId: fitness.id, date: '07/04/2026', duration: 50, notes: 'Focused on hip rotation and core, my shoulders felt tight', holesPlayed: null, score: null, createdAt: '2026-04-07T07:30:00' },
-    { categoryId: range.id, date: '09/04/2026', duration: 75, notes: 'Much better with the irons today, 7 iron was good', holesPlayed: null, score: null, createdAt: '2026-04-09T09:30:00' },
-    { categoryId: course.id, date: '12/04/2026', duration: 210, notes: 'Shot 83, which was my best round in a while, fairways were soft after the rain', holesPlayed: 18, score: 83, createdAt: '2026-04-12T08:00:00' },
-  ]);
+  await db.insert(habits).values({ name: 'Range Session', categoryId: practice.id, createdAt: '2026-04-01T09:00:00' });
+  await db.insert(habits).values({ name: 'Putting Practice', categoryId: shortGame.id, createdAt: '2026-04-01T09:00:00' });
+  await db.insert(habits).values({ name: 'Chipping Drills', categoryId: shortGame.id, createdAt: '2026-04-01T09:00:00' });
+  await db.insert(habits).values({ name: 'Play 18 Holes', categoryId: coursePlay.id, createdAt: '2026-04-01T09:00:00' });
+  await db.insert(habits).values({ name: 'Gym Workout', categoryId: fitness.id, createdAt: '2026-04-01T09:00:00' });
+  await db.insert(habits).values({ name: 'Visualisation', categoryId: mental.id, createdAt: '2026-04-01T09:00:00' });
 
-  await db.insert(targets).values([
-    { categoryId: range.id, period: 'weekly', goalValue: 3, createdAt: '2026-04-01T00:00:00' },
-    { categoryId: course.id, period: 'monthly', goalValue: 4, createdAt: '2026-04-01T00:00:00' },
-    { categoryId: fitness.id, period: 'weekly', goalValue: 2, createdAt: '2026-04-01T00:00:00' },
-  ]);
+  const allHabits = await db.select().from(habits);
+  const rangeHabit = allHabits.find(h => h.name === 'Range Session')!;
+  const puttingHabit = allHabits.find(h => h.name === 'Putting Practice')!;
+  const play18 = allHabits.find(h => h.name === 'Play 18 Holes')!;
+  const gymHabit = allHabits.find(h => h.name === 'Gym Workout')!;
+
+  await db.insert(habitLogs).values({ habitId: rangeHabit.id, date: '2026-04-01', count: 1, duration: 60, notes: 'driver was pulling left, slowed down backswing helped', createdAt: '2026-04-01T09:00:00' });
+  await db.insert(habitLogs).values({ habitId: puttingHabit.id, date: '2026-04-02', count: 1, duration: 45, notes: 'lag putting felt good, short ones still shaky', createdAt: '2026-04-02T10:00:00' });
+  await db.insert(habitLogs).values({ habitId: play18.id, date: '2026-04-05', count: 1, duration: 240, notes: 'played fota, lost it on the back 9 as usual', score: 86, createdAt: '2026-04-05T08:00:00' });
+  await db.insert(habitLogs).values({ habitId: gymHabit.id, date: '2026-04-07', count: 1, duration: 50, notes: 'hip rotation and core work', createdAt: '2026-04-07T07:30:00' });
+  await db.insert(habitLogs).values({ habitId: rangeHabit.id, date: '2026-04-09', count: 1, duration: 75, notes: '7 iron was flushing, best range session in a while', createdAt: '2026-04-09T09:30:00' });
+  await db.insert(habitLogs).values({ habitId: play18.id, date: '2026-04-12', count: 1, duration: 210, notes: 'shot 83, fairways were soft after the rain', score: 83, createdAt: '2026-04-12T08:00:00' });
+
+  await db.insert(targets).values({ habitId: rangeHabit.id, period: 'weekly', goalValue: 3, createdAt: '2026-04-01T00:00:00' });
+  await db.insert(targets).values({ habitId: play18.id, period: 'monthly', goalValue: 4, createdAt: '2026-04-01T00:00:00' });
+  await db.insert(targets).values({ habitId: gymHabit.id, period: 'weekly', goalValue: 2, createdAt: '2026-04-01T00:00:00' });
 }
