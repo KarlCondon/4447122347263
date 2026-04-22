@@ -1,50 +1,47 @@
-# Welcome to your Expo app 👋
+# Golf Habit Tracker
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+ Student Number: 122347263  
+ Module:  IS4447  
+ Project Option: Option A – Habit Tracker  
 
-## Get started
+## GitHub Repository
+https://github.com/KarlCondon/4447122347263
 
-1. Install dependencies
+## Expo Preview Links
+**iOS Preview:**  
+https://expo.dev/preview/update?message=IS4447+submission+preview+iOS&updateRuntimeVersion=1.0.0&createdAt=2026-04-22T18%3A12%3A18.299Z&slug=exp&projectId=45a76f2c-f90e-4382-83ba-b59b722615e0&group=c42f3153-98fe-4dcd-9027-666431c63938
 
+**Android Preview:**  
+https://expo.dev/preview/update?message=IS4447+submission+preview+Android&updateRuntimeVersion=1.0.0&createdAt=2026-04-22T18%3A15%3A12.918Z&slug=exp&projectId=45a76f2c-f90e-4382-83ba-b59b722615e0&group=fa536432-0de2-4a23-ac90-539b54a69bb0
+
+## App Description
+Golf Habit Tracker is a mobile app built with React Native, Expo, Drizzle ORM and SQLite. It allows users to create golf habits, organise them into categories, log activity, set weekly and monthly targets, track streaks, view insights, export logs to CSV and manage their account.
+
+## Main Features
+- Register, login, logout, and delete profile
+- Create, edit, and delete categories
+- Create, edit, and delete golf habits
+- Add, edit, and delete activity logs
+- Weekly and monthly targets with live progress tracking
+- Streak tracking
+- Insights and chart summaries
+- Search and filter activity logs
+- Dark/light mode with saved preference
+- CSV export
+- Local reminders for activity logging
+- Local SQLite persistence with seed data
+- Jest tests for seed logic, FormField component, and integration flow
+
+## Tech Stack
+- React Native
+- Expo
+- Expo Router
+- Drizzle ORM
+- SQLite
+- TypeScript
+- Jest
+
+## Setup Instructions
+1. Install dependencies:
    ```bash
    npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
