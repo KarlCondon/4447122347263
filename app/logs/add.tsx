@@ -29,7 +29,7 @@ type Habit = {
   categoryId: number;
   createdAt: string;
 };
-
+// Default new logs to today's date to make quick entry easier
 const getToday = () => {
   return new Date().toISOString().split('T')[0];
 };
@@ -73,7 +73,7 @@ export default function AddLogScreen() {
   const getCategory = (categoryId: number) => {
     return categories.find(category => category.id === categoryId);
   };
-
+// Validate the entry before saving it into the local SQLite database
   const handleSave = async () => {
     if (!selectedHabitId) {
       Alert.alert('Missing habit', 'Choose a habit first');

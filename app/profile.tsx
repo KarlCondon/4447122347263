@@ -56,7 +56,7 @@ export default function ProfileScreen() {
 
     setUser(result[0]);
   };
-
+// Schedule one daily reminder to prompt activity logging
   const handleDailyReminder = async () => {
     try {
       await scheduleDailyReminder();
@@ -84,7 +84,7 @@ export default function ProfileScreen() {
     await clearSessionUserId();
     router.replace('/(auth)/login');
   };
-
+// Deleting the profile also clears the local session and returns to login
   const handleDeleteProfile = () => {
     if (!user) return;
 

@@ -1,6 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-
+// Ask for notification permission before trying to schedule reminders
 export async function ensureNotificationPermissions() {
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('daily-reminders', {
@@ -21,7 +21,7 @@ export async function ensureNotificationPermissions() {
 
   return finalStatus === 'granted';
 }
-
+// Reset existing reminders first so the user only keeps one daily prompt
 export async function scheduleDailyReminder() {
   const granted = await ensureNotificationPermissions();
 
@@ -34,7 +34,7 @@ export async function scheduleDailyReminder() {
   await Notifications.scheduleNotificationAsync({
     content: {
       title: 'Golf Tracker reminder',
-      body: 'Log today’s activity and check your target progress.',
+      body: 'Log todays activity and check your target progress.',
       sound: true,
     },
   trigger: {
@@ -44,7 +44,7 @@ export async function scheduleDailyReminder() {
 },
   });
 }
-
+// Remove every scheduled reminder for the device user
 export async function clearAllReminders() {
   await Notifications.cancelAllScheduledNotificationsAsync();
 }

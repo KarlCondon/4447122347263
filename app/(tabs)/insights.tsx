@@ -129,7 +129,7 @@ export default function InsightsScreen() {
     () => monthlyLogs.reduce((sum, log) => sum + (log.duration ?? 0), 0),
     [monthlyLogs]
   );
-
+// Build the weekly category totals used by the chart on the insights screen
   const categoryBars = useMemo(() => {
     const totals = new Map<number, number>();
 
@@ -162,7 +162,7 @@ export default function InsightsScreen() {
     if (categoryBars.length === 0) return 1;
     return Math.max(...categoryBars.map(item => item.total));
   }, [categoryBars]);
-
+// Quick summary cards for daily, weekly and monthly activity
   const summaryCards = [
     {
       label: 'Today',

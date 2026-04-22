@@ -35,7 +35,7 @@ type LogEntry = {
   notes: string | null;
   score: number | null;
 };
-
+// Wrap CSV values safely so commas or quotes in notes do not break the export
 const escapeCsvValue = (value: string | number | null | undefined) => {
   return `"${String(value ?? '').replace(/"/g, '""')}"`;
 };
@@ -87,7 +87,7 @@ export default function ActivityScreen() {
       loadLogs();
     }, [])
   );
-
+// Search and export both use the same filtered list shown on screen
   const filteredLogs = useMemo(() => {
     const search = searchText.trim().toLowerCase();
 
@@ -137,7 +137,7 @@ export default function ActivityScreen() {
       },
     ]);
   };
-
+// Export only the logs currently visible after search and filter are applied
   const handleExportCsv = async () => {
     if (filteredLogs.length === 0) {
       Alert.alert('Nothing to export', 'There are no logs matching the current filters.');

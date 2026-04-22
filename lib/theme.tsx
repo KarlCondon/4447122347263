@@ -38,9 +38,9 @@ type ThemeContextValue = {
   theme: AppTheme;
   toggleTheme: () => Promise<void>;
 };
-
+// Keep the users theme choice between app launches
 const THEME_KEY = 'themeMode';
-
+// Default app theme used across all screens unless the user switches mode
 const darkTheme: AppTheme = {
   background: '#081f08',
   surface: '#102d12',
@@ -91,7 +91,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<ThemeMode | null>(null);
-
+// Load the saved theme when the app starts
   useEffect(() => {
     const loadTheme = async () => {
       const storedMode = await SecureStore.getItemAsync(THEME_KEY);
@@ -100,7 +100,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
     loadTheme();
   }, []);
-
+// Switch theme mode and save the new choice locally
   const toggleTheme = async () => {
     if (!mode) return;
 

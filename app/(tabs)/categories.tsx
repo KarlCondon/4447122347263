@@ -29,7 +29,7 @@ type Habit = {
   categoryId: number;
   createdAt: string;
 };
-
+// Kept to a small choice of greens to match golfer style for a cleaner category look
 const colourOptions = [
   '#1b4332',
   '#2d6a4f',
@@ -142,7 +142,7 @@ export default function CategoriesScreen() {
       Alert.alert('Error', 'Could not save category');
     }
   };
-
+// Scroll back to the category form at the top so edits are obvious to the user
   const handleEditCategory = (category: Category) => {
     setCategoryName(category.name);
     setSelectedColour(category.colour);
@@ -215,7 +215,7 @@ export default function CategoriesScreen() {
       Alert.alert('Error', 'Could not save habit');
     }
   };
-
+// Scroll to the habit form when editing an existing habit
   const handleEditHabit = (habit: Habit) => {
     setHabitName(habit.name);
     setSelectedCategoryId(habit.categoryId);

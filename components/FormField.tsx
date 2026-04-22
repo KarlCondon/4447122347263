@@ -4,7 +4,7 @@ import { useAppTheme } from '../lib/theme';
 type FormFieldProps = TextInputProps & {
   label: string;
 };
-
+// Shared input used across auth, logs, categories and targets screens
 export default function FormField({
   label,
   style,

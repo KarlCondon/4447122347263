@@ -53,7 +53,7 @@ type HabitLog = {
 };
 
 const toDateKey = (date: Date) => date.toISOString().split('T')[0];
-
+// Weekly targets use a Monday to Sunday range
 const getWeekRange = (weeksBack = 0) => {
   const today = new Date();
   const day = today.getDay();
@@ -71,7 +71,7 @@ const getWeekRange = (weeksBack = 0) => {
     end: toDateKey(end),
   };
 };
-
+// Monthly targets are checked against full calendar months
 const getMonthRange = (monthsBack = 0) => {
   const today = new Date();
   const start = new Date(today.getFullYear(), today.getMonth() - monthsBack, 1);
@@ -167,7 +167,7 @@ export default function TargetsScreen() {
     if (!habitId) return [];
     return logs.filter(log => log.habitId === habitId);
   };
-
+// Progress is based on logs in the current target period only
   const getProgressForTarget = (target: Target) => {
     const logsForHabit = getLogsForHabit(target.habitId);
     const range = getRangeForPeriod(target.period, 0);
@@ -176,7 +176,7 @@ export default function TargetsScreen() {
       log => log.date >= range.start && log.date <= range.end
     ).length;
   };
-
+// A streak only counts when the full goal is met in consecutive periods
   const getStreakForTarget = (target: Target) => {
     const logsForHabit = getLogsForHabit(target.habitId);
 

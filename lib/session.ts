@@ -1,5 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
-
+// Store the logged in user locally so the app can reopen to the right screen
 const SESSION_KEY = 'currentUserId';
 
 export async function setSessionUserId(userId: string) {

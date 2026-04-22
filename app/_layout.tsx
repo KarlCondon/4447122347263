@@ -3,7 +3,7 @@ import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { seedIfEmpty } from '../db/seed';
 import { ThemeProvider } from '../lib/theme';
-
+// Show local reminders while the app is open as well as in the background
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldPlaySound: true,

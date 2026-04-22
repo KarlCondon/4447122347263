@@ -52,7 +52,7 @@ export default function EditLogScreen() {
     () => [...habits].sort((a, b) => a.name.localeCompare(b.name)),
     [habits]
   );
-
+// Load the selected log by id so the form opens with its current values
   useEffect(() => {
     loadData();
   }, [id]);
