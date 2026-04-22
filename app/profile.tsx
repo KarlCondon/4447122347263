@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { db } from '../db/client';
 import { users } from '../db/schema';
+import { clearAllReminders, scheduleDailyReminder } from '../lib/notifications';
 import { clearSessionUserId, getSessionUserId } from '../lib/session';
 import { useAppTheme } from '../lib/theme';
 
@@ -54,6 +55,29 @@ export default function ProfileScreen() {
     }
 
     setUser(result[0]);
+  };
+
+  const handleDailyReminder = async () => {
+    try {
+      await scheduleDailyReminder();
+      Alert.alert('Reminder set', 'A daily reminder has been scheduled for 7:00 PM.');
+    } catch (error) {
+      console.error(error);
+      Alert.alert(
+        'Could not set reminder',
+        'Please allow notifications and try again.'
+      );
+    }
+  };
+
+  const handleClearReminders = async () => {
+    try {
+      await clearAllReminders();
+      Alert.alert('Reminders cleared', 'All scheduled reminders have been removed.');
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Could not clear reminders.');
+    }
   };
 
   const handleLogout = async () => {
@@ -107,6 +131,14 @@ export default function ProfileScreen() {
         <Text style={styles.secondaryButtonText}>
           Switch to {mode === 'dark' ? 'light' : 'dark'} mode
         </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.secondaryButton} onPress={handleDailyReminder}>
+        <Text style={styles.secondaryButtonText}>Set daily reminder</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.secondaryButton} onPress={handleClearReminders}>
+        <Text style={styles.secondaryButtonText}>Clear reminders</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.primaryButton} onPress={handleLogout}>
