@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { eq } from 'drizzle-orm';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
     Alert,
     ScrollView,
@@ -40,46 +40,65 @@ type Target = {
   createdAt: string;
 };
 
-const getToday = () => new Date();
-
-const formatDateKey = (date: Date) => {
-  return date.toISOString().split('T')[0];
+type HabitLog = {
+  id: number;
+  habitId: number;
+  date: string;
+  count: number;
+  duration: number | null;
+  notes: string | null;
+  score: number | null;
+  createdAt: string;
 };
 
-const getWeekRange = () => {
-  const today = getToday();
+const toDateKey = (date: Date) => date.toISOString().split('T')[0];
+
+const getWeekRange = (weeksBack = 0) => {
+  const today = new Date();
   const day = today.getDay();
   const diffToMonday = day === 0 ? -6 : 1 - day;
 
   const start = new Date(today);
-  start.setDate(today.getDate() + diffToMonday);
+  start.setDate(today.getDate() + diffToMonday - weeksBack * 7);
   start.setHours(0, 0, 0, 0);
 
   const end = new Date(start);
   end.setDate(start.getDate() + 6);
 
   return {
-    start: formatDateKey(start),
-    end: formatDateKey(end),
+    start: toDateKey(start),
+    end: toDateKey(end),
   };
 };
 
-const getMonthRange = () => {
-  const today = getToday();
-
-  const start = new Date(today.getFullYear(), today.getMonth(), 1);
-  const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+const getMonthRange = (monthsBack = 0) => {
+  const today = new Date();
+  const start = new Date(today.getFullYear(), today.getMonth() - monthsBack, 1);
+  const end = new Date(today.getFullYear(), today.getMonth() - monthsBack + 1, 0);
 
   return {
-    start: formatDateKey(start),
-    end: formatDateKey(end),
+    start: toDateKey(start),
+    end: toDateKey(end),
   };
+};
+
+const getRangeForPeriod = (period: string, back = 0) => {
+  return period === 'monthly' ? getMonthRange(back) : getWeekRange(back);
+};
+
+const getStreakLabel = (streak: number, period: string) => {
+  if (period === 'monthly') {
+    return `Streak: ${streak} ${streak === 1 ? 'month' : 'months'} in a row`;
+  }
+
+  return `Streak: ${streak} ${streak === 1 ? 'week' : 'weeks'} in a row`;
 };
 
 export default function TargetsScreen() {
   const [targets, setTargets] = useState<Target[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [logs, setLogs] = useState<HabitLog[]>([]);
 
   const [showForm, setShowForm] = useState(false);
   const [editingTargetId, setEditingTargetId] = useState<number | null>(null);
@@ -94,20 +113,22 @@ export default function TargetsScreen() {
   );
 
   useFocusEffect(
-  useCallback(() => {
-    loadData();
-  }, [])
-);
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
 
   const loadData = async () => {
     try {
       const targetResults = await db.select().from(targetsTable);
       const habitResults = await db.select().from(habitsTable);
       const categoryResults = await db.select().from(categoriesTable);
+      const logResults = await db.select().from(habitLogsTable);
 
       setTargets(targetResults);
       setHabits(habitResults);
       setCategories(categoryResults);
+      setLogs(logResults);
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Could not load targets');
@@ -138,21 +159,45 @@ export default function TargetsScreen() {
     return getCategory(habit.categoryId);
   };
 
-  const getProgressForTarget = async (target: Target) => {
-    if (!target.habitId) return 0;
+  const getLogsForHabit = (habitId: number | null) => {
+    if (!habitId) return [];
+    return logs.filter(log => log.habitId === habitId);
+  };
 
-    const logs = await db
-      .select()
-      .from(habitLogsTable)
-      .where(eq(habitLogsTable.habitId, target.habitId));
+  const getProgressForTarget = (target: Target) => {
+    const logsForHabit = getLogsForHabit(target.habitId);
+    const range = getRangeForPeriod(target.period, 0);
 
-    const range = target.period === 'weekly' ? getWeekRange() : getMonthRange();
-
-    const matchingLogs = logs.filter(
+    return logsForHabit.filter(
       log => log.date >= range.start && log.date <= range.end
-    );
+    ).length;
+  };
 
-    return matchingLogs.length;
+  const getStreakForTarget = (target: Target) => {
+    const logsForHabit = getLogsForHabit(target.habitId);
+
+    if (logsForHabit.length === 0) {
+      return 0;
+    }
+
+    const limit = target.period === 'monthly' ? 24 : 104;
+    let streak = 0;
+
+    for (let back = 0; back < limit; back++) {
+      const range = getRangeForPeriod(target.period, back);
+
+      const count = logsForHabit.filter(
+        log => log.date >= range.start && log.date <= range.end
+      ).length;
+
+      if (count >= target.goalValue) {
+        streak += 1;
+      } else {
+        break;
+      }
+    }
+
+    return streak;
   };
 
   const handleSave = async () => {
@@ -232,24 +277,8 @@ export default function TargetsScreen() {
   };
 
   const TargetCard = ({ target }: { target: Target }) => {
-    const [progress, setProgress] = useState(0);
-
-    useEffect(() => {
-      let active = true;
-
-      const loadProgress = async () => {
-        const value = await getProgressForTarget(target);
-        if (active) {
-          setProgress(value);
-        }
-      };
-
-      loadProgress();
-
-      return () => {
-        active = false;
-      };
-    }, [target]);
+    const progress = getProgressForTarget(target);
+    const streak = getStreakForTarget(target);
 
     const habit = getHabit(target.habitId);
     const category = getHabitCategory(target.habitId);
@@ -300,6 +329,8 @@ export default function TargetsScreen() {
           ) : (
             <Text style={styles.warningText}>{remaining} remaining</Text>
           )}
+
+          <Text style={styles.streakText}>{getStreakLabel(streak, target.period)}</Text>
         </View>
       </View>
     );
@@ -662,9 +693,16 @@ const styles = StyleSheet.create({
     color: '#9cd19f',
     fontSize: 13,
     fontWeight: '600',
+    marginBottom: 6,
   },
   warningText: {
     color: '#f0c67a',
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  streakText: {
+    color: '#b8cbb8',
     fontSize: 13,
     fontWeight: '600',
   },
