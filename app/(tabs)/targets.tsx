@@ -17,6 +17,7 @@ import {
     habits as habitsTable,
     targets as targetsTable,
 } from '../../db/schema';
+import { useAppTheme } from '../../lib/theme';
 
 type Habit = {
   id: number;
@@ -95,6 +96,9 @@ const getStreakLabel = (streak: number, period: string) => {
 };
 
 export default function TargetsScreen() {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
   const [targets, setTargets] = useState<Target[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -464,246 +468,247 @@ export default function TargetsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#081f08',
-  },
-  content: {
-    paddingTop: 60,
-    paddingHorizontal: 16,
-    paddingBottom: 28,
-  },
-  heading: {
-    color: '#eef6ee',
-    fontSize: 32,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  subheading: {
-    color: '#8fb58f',
-    fontSize: 14,
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  sectionTitle: {
-    color: '#dce8dc',
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  actionButton: {
-    backgroundColor: '#1c5f27',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  actionButtonText: {
-    color: '#eef6ee',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  panel: {
-    backgroundColor: '#102d12',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#1f4824',
-  },
-  panelTitle: {
-    color: '#eef6ee',
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 14,
-  },
-  label: {
-    color: '#dce8dc',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  selectorWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 14,
-  },
-  selectorChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#173a19',
-    borderWidth: 1,
-    borderColor: '#244d27',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  selectorChipActive: {
-    backgroundColor: '#1f5a25',
-    borderColor: '#5faa65',
-  },
-  selectorDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 8,
-  },
-  selectorText: {
-    color: '#b8cbb8',
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  selectorTextActive: {
-    color: '#eef6ee',
-  },
-  periodRow: {
-    flexDirection: 'row',
-    marginBottom: 14,
-  },
-  periodButton: {
-    backgroundColor: '#173a19',
-    borderWidth: 1,
-    borderColor: '#244d27',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginRight: 10,
-  },
-  periodButtonActive: {
-    backgroundColor: '#1f5a25',
-    borderColor: '#5faa65',
-  },
-  periodText: {
-    color: '#b8cbb8',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  periodTextActive: {
-    color: '#eef6ee',
-  },
-  formActions: {
-    flexDirection: 'row',
-    marginTop: 4,
-  },
-  saveButton: {
-    backgroundColor: '#2d7a38',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    marginRight: 10,
-  },
-  saveButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  cancelButton: {
-    backgroundColor: '#1a2b1b',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-  },
-  cancelButtonText: {
-    color: '#d6dfd6',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  emptyCard: {
-    backgroundColor: '#102d12',
-    borderRadius: 14,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: '#1f4824',
-  },
-  emptyText: {
-    color: '#89a589',
-    fontSize: 14,
-  },
-  card: {
-    backgroundColor: '#102d12',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#1f4824',
-  },
-  cardTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 14,
-  },
-  cardInfo: {
-    flexDirection: 'row',
-    flex: 1,
-    marginRight: 10,
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginTop: 4,
-    marginRight: 12,
-  },
-  cardText: {
-    flex: 1,
-  },
-  cardTitle: {
-    color: '#eef6ee',
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 3,
-  },
-  cardMeta: {
-    color: '#8fb58f',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  cardActions: {
-    alignItems: 'flex-end',
-  },
-  editText: {
-    color: '#9cd19f',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  deleteText: {
-    color: '#f28d8d',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  progressBlock: {
-    borderTopWidth: 1,
-    borderTopColor: '#1f4824',
-    paddingTop: 12,
-  },
-  progressMain: {
-    color: '#eef6ee',
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  goodText: {
-    color: '#9cd19f',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 6,
-  },
-  warningText: {
-    color: '#f0c67a',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 6,
-  },
-  streakText: {
-    color: '#b8cbb8',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-});
+const createStyles = (theme: ReturnType<typeof useAppTheme>['theme']) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    content: {
+      paddingTop: 60,
+      paddingHorizontal: 16,
+      paddingBottom: 28,
+    },
+    heading: {
+      color: theme.text,
+      fontSize: 32,
+      fontWeight: '700',
+      marginBottom: 6,
+    },
+    subheading: {
+      color: theme.textMuted,
+      fontSize: 14,
+      marginBottom: 24,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 14,
+    },
+    sectionTitle: {
+      color: theme.text,
+      fontSize: 20,
+      fontWeight: '700',
+    },
+    actionButton: {
+      backgroundColor: theme.primary,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+    },
+    actionButtonText: {
+      color: theme.primaryText,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    panel: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    panelTitle: {
+      color: theme.text,
+      fontSize: 18,
+      fontWeight: '700',
+      marginBottom: 14,
+    },
+    label: {
+      color: theme.text,
+      fontSize: 13,
+      fontWeight: '600',
+      marginBottom: 8,
+    },
+    selectorWrap: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginBottom: 14,
+    },
+    selectorChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.chipBackground,
+      borderWidth: 1,
+      borderColor: theme.chipBorder,
+      borderRadius: 999,
+      paddingHorizontal: 12,
+      paddingVertical: 9,
+      marginRight: 8,
+      marginBottom: 8,
+    },
+    selectorChipActive: {
+      backgroundColor: theme.chipActiveBackground,
+      borderColor: theme.chipActiveBorder,
+    },
+    selectorDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      marginRight: 8,
+    },
+    selectorText: {
+      color: theme.textSoft,
+      fontSize: 13,
+      fontWeight: '500',
+    },
+    selectorTextActive: {
+      color: theme.text,
+    },
+    periodRow: {
+      flexDirection: 'row',
+      marginBottom: 14,
+    },
+    periodButton: {
+      backgroundColor: theme.chipBackground,
+      borderWidth: 1,
+      borderColor: theme.chipBorder,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      marginRight: 10,
+    },
+    periodButtonActive: {
+      backgroundColor: theme.chipActiveBackground,
+      borderColor: theme.chipActiveBorder,
+    },
+    periodText: {
+      color: theme.textSoft,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    periodTextActive: {
+      color: theme.text,
+    },
+    formActions: {
+      flexDirection: 'row',
+      marginTop: 4,
+    },
+    saveButton: {
+      backgroundColor: theme.primary,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 11,
+      marginRight: 10,
+    },
+    saveButtonText: {
+      color: theme.primaryText,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    cancelButton: {
+      backgroundColor: theme.secondaryButton,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 11,
+    },
+    cancelButtonText: {
+      color: theme.secondaryButtonText,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    emptyCard: {
+      backgroundColor: theme.surface,
+      borderRadius: 14,
+      padding: 18,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    emptyText: {
+      color: theme.textMuted,
+      fontSize: 14,
+    },
+    card: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    cardTop: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 14,
+    },
+    cardInfo: {
+      flexDirection: 'row',
+      flex: 1,
+      marginRight: 10,
+    },
+    dot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      marginTop: 4,
+      marginRight: 12,
+    },
+    cardText: {
+      flex: 1,
+    },
+    cardTitle: {
+      color: theme.text,
+      fontSize: 18,
+      fontWeight: '700',
+      marginBottom: 3,
+    },
+    cardMeta: {
+      color: theme.textMuted,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    cardActions: {
+      alignItems: 'flex-end',
+    },
+    editText: {
+      color: theme.good,
+      fontSize: 13,
+      fontWeight: '600',
+      marginBottom: 8,
+    },
+    deleteText: {
+      color: theme.danger,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    progressBlock: {
+      borderTopWidth: 1,
+      borderTopColor: theme.border,
+      paddingTop: 12,
+    },
+    progressMain: {
+      color: theme.text,
+      fontSize: 22,
+      fontWeight: '700',
+      marginBottom: 6,
+    },
+    goodText: {
+      color: theme.good,
+      fontSize: 13,
+      fontWeight: '600',
+      marginBottom: 6,
+    },
+    warningText: {
+      color: theme.warning,
+      fontSize: 13,
+      fontWeight: '600',
+      marginBottom: 6,
+    },
+    streakText: {
+      color: theme.textSoft,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+  });

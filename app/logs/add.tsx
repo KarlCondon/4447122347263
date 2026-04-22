@@ -1,20 +1,21 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import FormField from '../../components/FormField';
 import { db } from '../../db/client';
 import {
-    categories as categoriesTable,
-    habitLogs as habitLogsTable,
-    habits as habitsTable,
+  categories as categoriesTable,
+  habitLogs as habitLogsTable,
+  habits as habitsTable,
 } from '../../db/schema';
+import { useAppTheme } from '../../lib/theme';
 
 type Category = {
   id: number;
@@ -34,6 +35,9 @@ const getToday = () => {
 };
 
 export default function AddLogScreen() {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
 
@@ -217,101 +221,102 @@ export default function AddLogScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#081f08',
-  },
-  content: {
-    paddingTop: 60,
-    paddingHorizontal: 16,
-    paddingBottom: 28,
-  },
-  heading: {
-    color: '#eef6ee',
-    fontSize: 32,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  subheading: {
-    color: '#8fb58f',
-    fontSize: 14,
-    marginBottom: 24,
-  },
-  panel: {
-    backgroundColor: '#102d12',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#1f4824',
-  },
-  label: {
-    color: '#dce8dc',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  habitWrap: {
-    marginBottom: 16,
-  },
-  habitChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#173a19',
-    borderWidth: 1,
-    borderColor: '#244d27',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 10,
-  },
-  habitChipActive: {
-    backgroundColor: '#1f5a25',
-    borderColor: '#5faa65',
-  },
-  habitDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 12,
-  },
-  habitName: {
-    color: '#e6efe6',
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  habitNameActive: {
-    color: '#ffffff',
-  },
-  habitCategory: {
-    color: '#8fb58f',
-    fontSize: 12,
-  },
-  actions: {
-    flexDirection: 'row',
-    marginTop: 6,
-  },
-  saveButton: {
-    backgroundColor: '#2d7a38',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    marginRight: 10,
-  },
-  saveButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  cancelButton: {
-    backgroundColor: '#1a2b1b',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-  },
-  cancelButtonText: {
-    color: '#d6dfd6',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});
+const createStyles = (theme: ReturnType<typeof useAppTheme>['theme']) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    content: {
+      paddingTop: 60,
+      paddingHorizontal: 16,
+      paddingBottom: 28,
+    },
+    heading: {
+      color: theme.text,
+      fontSize: 32,
+      fontWeight: '700',
+      marginBottom: 6,
+    },
+    subheading: {
+      color: theme.textMuted,
+      fontSize: 14,
+      marginBottom: 24,
+    },
+    panel: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    label: {
+      color: theme.text,
+      fontSize: 13,
+      fontWeight: '600',
+      marginBottom: 8,
+    },
+    habitWrap: {
+      marginBottom: 16,
+    },
+    habitChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.chipBackground,
+      borderWidth: 1,
+      borderColor: theme.chipBorder,
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 10,
+    },
+    habitChipActive: {
+      backgroundColor: theme.chipActiveBackground,
+      borderColor: theme.chipActiveBorder,
+    },
+    habitDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      marginRight: 12,
+    },
+    habitName: {
+      color: theme.text,
+      fontSize: 14,
+      fontWeight: '600',
+      marginBottom: 2,
+    },
+    habitNameActive: {
+      color: theme.text,
+    },
+    habitCategory: {
+      color: theme.textMuted,
+      fontSize: 12,
+    },
+    actions: {
+      flexDirection: 'row',
+      marginTop: 6,
+    },
+    saveButton: {
+      backgroundColor: theme.primary,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 11,
+      marginRight: 10,
+    },
+    saveButtonText: {
+      color: theme.primaryText,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    cancelButton: {
+      backgroundColor: theme.secondaryButton,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 11,
+    },
+    cancelButtonText: {
+      color: theme.secondaryButtonText,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+  });

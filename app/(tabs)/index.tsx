@@ -14,6 +14,7 @@ import {
 import FormField from '../../components/FormField';
 import { db } from '../../db/client';
 import { categories, habitLogs, habits } from '../../db/schema';
+import { useAppTheme } from '../../lib/theme';
 
 type Category = {
   id: number;
@@ -36,6 +37,9 @@ type LogEntry = {
 };
 
 export default function ActivityScreen() {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [categoryList, setCategoryList] = useState<Category[]>([]);
 
@@ -179,10 +183,10 @@ export default function ActivityScreen() {
           <TouchableOpacity
             style={styles.accountButton}
             onPress={() =>
-  router.push({
-    pathname: '/profile',
-  })
-}
+              router.push({
+                pathname: '/profile',
+              })
+            }
           >
             <Text style={styles.accountButtonText}>Account</Text>
           </TouchableOpacity>
@@ -305,200 +309,201 @@ export default function ActivityScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#081f08',
-    paddingTop: 60,
-    paddingHorizontal: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 18,
-  },
-  headerTextWrap: {
-    flex: 1,
-    marginRight: 12,
-  },
-  heading: {
-    color: '#eef6ee',
-    fontSize: 32,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  subheading: {
-    color: '#8fb58f',
-    fontSize: 14,
-  },
-  headerButtons: {
-    alignItems: 'flex-end',
-  },
-  accountButton: {
-    backgroundColor: '#1a2b1b',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 8,
-  },
-  accountButtonText: {
-    color: '#d6dfd6',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  addButton: {
-    backgroundColor: '#1c5f27',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  addButtonText: {
-    color: '#eef6ee',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  filtersPanel: {
-    maxHeight: 265,
-    marginBottom: 14,
-  },
-  filtersContent: {
-    backgroundColor: '#102d12',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#1f4824',
-  },
-  filterLabel: {
-    color: '#dce8dc',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  categoryFilterRow: {
-    paddingBottom: 8,
-  },
-  categoryChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#173a19',
-    borderWidth: 1,
-    borderColor: '#244d27',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    marginRight: 8,
-  },
-  categoryChipActive: {
-    backgroundColor: '#1f5a25',
-    borderColor: '#5faa65',
-  },
-  categoryChipDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 8,
-  },
-  categoryChipText: {
-    color: '#b8cbb8',
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  categoryChipTextActive: {
-    color: '#eef6ee',
-  },
-  dateRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  dateField: {
-    width: '48%',
-  },
-  clearButton: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#1a2b1b',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-  },
-  clearButtonText: {
-    color: '#d6dfd6',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  card: {
-    backgroundColor: '#102d12',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#1f4824',
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginTop: 5,
-    marginRight: 12,
-  },
-  cardContent: {
-    flex: 1,
-  },
-  habitName: {
-    color: '#eef6ee',
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 3,
-  },
-  category: {
-    color: '#8fb58f',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  date: {
-    color: '#b9cfb9',
-    fontSize: 13,
-    marginBottom: 6,
-  },
-  notes: {
-    color: '#d6e2d6',
-    fontSize: 13,
-    marginBottom: 8,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  meta: {
-    color: '#89a589',
-    fontSize: 12,
-    marginRight: 12,
-    marginBottom: 4,
-  },
-  cardActions: {
-    marginLeft: 10,
-  },
-  editBtn: {
-    color: '#9cd19f',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 10,
-  },
-  deleteBtn: {
-    color: '#f28d8d',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  empty: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    color: '#89a589',
-    fontSize: 15,
-  },
-});
+const createStyles = (theme: ReturnType<typeof useAppTheme>['theme']) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+      paddingTop: 60,
+      paddingHorizontal: 16,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 18,
+    },
+    headerTextWrap: {
+      flex: 1,
+      marginRight: 12,
+    },
+    heading: {
+      color: theme.text,
+      fontSize: 32,
+      fontWeight: '700',
+      marginBottom: 4,
+    },
+    subheading: {
+      color: theme.textMuted,
+      fontSize: 14,
+    },
+    headerButtons: {
+      alignItems: 'flex-end',
+    },
+    accountButton: {
+      backgroundColor: theme.secondaryButton,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      marginBottom: 8,
+    },
+    accountButtonText: {
+      color: theme.secondaryButtonText,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    addButton: {
+      backgroundColor: theme.primary,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+    },
+    addButtonText: {
+      color: theme.primaryText,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    filtersPanel: {
+      maxHeight: 265,
+      marginBottom: 14,
+    },
+    filtersContent: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    filterLabel: {
+      color: theme.text,
+      fontSize: 13,
+      fontWeight: '600',
+      marginBottom: 8,
+    },
+    categoryFilterRow: {
+      paddingBottom: 8,
+    },
+    categoryChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.chipBackground,
+      borderWidth: 1,
+      borderColor: theme.chipBorder,
+      borderRadius: 999,
+      paddingHorizontal: 12,
+      paddingVertical: 9,
+      marginRight: 8,
+    },
+    categoryChipActive: {
+      backgroundColor: theme.chipActiveBackground,
+      borderColor: theme.chipActiveBorder,
+    },
+    categoryChipDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      marginRight: 8,
+    },
+    categoryChipText: {
+      color: theme.textSoft,
+      fontSize: 13,
+      fontWeight: '500',
+    },
+    categoryChipTextActive: {
+      color: theme.text,
+    },
+    dateRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    dateField: {
+      width: '48%',
+    },
+    clearButton: {
+      alignSelf: 'flex-start',
+      backgroundColor: theme.secondaryButton,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 11,
+    },
+    clearButtonText: {
+      color: theme.secondaryButtonText,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    card: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: theme.border,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+    },
+    dot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      marginTop: 5,
+      marginRight: 12,
+    },
+    cardContent: {
+      flex: 1,
+    },
+    habitName: {
+      color: theme.text,
+      fontSize: 18,
+      fontWeight: '700',
+      marginBottom: 3,
+    },
+    category: {
+      color: theme.textMuted,
+      fontSize: 13,
+      fontWeight: '600',
+      marginBottom: 4,
+    },
+    date: {
+      color: theme.textSoft,
+      fontSize: 13,
+      marginBottom: 6,
+    },
+    notes: {
+      color: theme.textSoft,
+      fontSize: 13,
+      marginBottom: 8,
+    },
+    metaRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+    },
+    meta: {
+      color: theme.textMuted,
+      fontSize: 12,
+      marginRight: 12,
+      marginBottom: 4,
+    },
+    cardActions: {
+      marginLeft: 10,
+    },
+    editBtn: {
+      color: theme.good,
+      fontSize: 13,
+      fontWeight: '600',
+      marginBottom: 10,
+    },
+    deleteBtn: {
+      color: theme.danger,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    empty: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    emptyText: {
+      color: theme.textMuted,
+      fontSize: 15,
+    },
+  });

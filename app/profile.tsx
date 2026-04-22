@@ -12,6 +12,7 @@ import {
 import { db } from '../db/client';
 import { users } from '../db/schema';
 import { clearSessionUserId, getSessionUserId } from '../lib/session';
+import { useAppTheme } from '../lib/theme';
 
 type User = {
   id: number;
@@ -22,6 +23,9 @@ type User = {
 };
 
 export default function ProfileScreen() {
+  const { theme, mode, toggleTheme } = useAppTheme();
+  const styles = createStyles(theme);
+
   const [user, setUser] = useState<User | null>(null);
 
   useFocusEffect(
@@ -99,6 +103,12 @@ export default function ProfileScreen() {
         <Text style={styles.value}>{user.email}</Text>
       </View>
 
+      <TouchableOpacity style={styles.secondaryButton} onPress={toggleTheme}>
+        <Text style={styles.secondaryButtonText}>
+          Switch to {mode === 'dark' ? 'light' : 'dark'} mode
+        </Text>
+      </TouchableOpacity>
+
       <TouchableOpacity style={styles.primaryButton} onPress={handleLogout}>
         <Text style={styles.primaryButtonText}>Log out</Text>
       </TouchableOpacity>
@@ -110,75 +120,88 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  loadingWrap: {
-    flex: 1,
-    backgroundColor: '#081f08',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    color: '#d6dfd6',
-    fontSize: 15,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#081f08',
-    paddingTop: 60,
-    paddingHorizontal: 16,
-  },
-  heading: {
-    color: '#eef6ee',
-    fontSize: 32,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  subheading: {
-    color: '#8fb58f',
-    fontSize: 14,
-    marginBottom: 24,
-  },
-  card: {
-    backgroundColor: '#102d12',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 18,
-    borderWidth: 1,
-    borderColor: '#1f4824',
-  },
-  label: {
-    color: '#8fb58f',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  value: {
-    color: '#eef6ee',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 14,
-  },
-  primaryButton: {
-    backgroundColor: '#2d7a38',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  primaryButtonText: {
-    color: '#ffffff',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  dangerButton: {
-    backgroundColor: '#4a1717',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  dangerButtonText: {
-    color: '#ffd7d7',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-});
+const createStyles = (theme: ReturnType<typeof useAppTheme>['theme']) =>
+  StyleSheet.create({
+    loadingWrap: {
+      flex: 1,
+      backgroundColor: theme.background,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      color: theme.textSoft,
+      fontSize: 15,
+    },
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+      paddingTop: 60,
+      paddingHorizontal: 16,
+    },
+    heading: {
+      color: theme.text,
+      fontSize: 32,
+      fontWeight: '700',
+      marginBottom: 6,
+    },
+    subheading: {
+      color: theme.textMuted,
+      fontSize: 14,
+      marginBottom: 24,
+    },
+    card: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 18,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    label: {
+      color: theme.textMuted,
+      fontSize: 13,
+      fontWeight: '600',
+      marginBottom: 4,
+    },
+    value: {
+      color: theme.text,
+      fontSize: 16,
+      fontWeight: '600',
+      marginBottom: 14,
+    },
+    secondaryButton: {
+      backgroundColor: theme.secondaryButton,
+      borderRadius: 10,
+      paddingVertical: 14,
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    secondaryButtonText: {
+      color: theme.secondaryButtonText,
+      fontSize: 15,
+      fontWeight: '600',
+    },
+    primaryButton: {
+      backgroundColor: theme.primary,
+      borderRadius: 10,
+      paddingVertical: 14,
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    primaryButtonText: {
+      color: theme.primaryText,
+      fontSize: 15,
+      fontWeight: '600',
+    },
+    dangerButton: {
+      backgroundColor: theme.dangerBackground,
+      borderRadius: 10,
+      paddingVertical: 14,
+      alignItems: 'center',
+    },
+    dangerButtonText: {
+      color: theme.danger,
+      fontSize: 15,
+      fontWeight: '600',
+    },
+  });

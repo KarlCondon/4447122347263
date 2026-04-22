@@ -1,5 +1,6 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { eq } from 'drizzle-orm';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
     Alert,
     ScrollView,
@@ -12,9 +13,9 @@ import FormField from '../../components/FormField';
 import { db } from '../../db/client';
 import {
     categories as categoriesTable,
-    habitLogs as habitLogsTable,
     habits as habitsTable,
 } from '../../db/schema';
+import { useAppTheme } from '../../lib/theme';
 
 type Category = {
   id: number;
@@ -30,29 +31,30 @@ type Habit = {
 };
 
 const colourOptions = [
-  '#2d6a4f',
-  '#52b788',
   '#1b4332',
-  '#74c69d',
+  '#2d6a4f',
   '#40916c',
-  '#95d5b2',
+  '#52b788',
+  '#74c69d',
+  '#588157',
 ];
 
 export default function CategoriesScreen() {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
+  const scrollRef = useRef<ScrollView>(null);
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
 
-  const [showCategoryForm, setShowCategoryForm] = useState(false);
-  const [showHabitForm, setShowHabitForm] = useState(false);
-
-  const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
-  const [editingHabitId, setEditingHabitId] = useState<number | null>(null);
-
   const [categoryName, setCategoryName] = useState('');
   const [selectedColour, setSelectedColour] = useState(colourOptions[0]);
+  const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
 
   const [habitName, setHabitName] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [editingHabitId, setEditingHabitId] = useState<number | null>(null);
 
   const sortedCategories = useMemo(
     () => [...categories].sort((a, b) => a.name.localeCompare(b.name)),
@@ -60,13 +62,27 @@ export default function CategoriesScreen() {
   );
 
   const sortedHabits = useMemo(
-    () => [...habits].sort((a, b) => a.name.localeCompare(b.name)),
-    [habits]
+    () =>
+      [...habits].sort((a, b) => {
+        const categoryA =
+          categories.find(category => category.id === a.categoryId)?.name ?? '';
+        const categoryB =
+          categories.find(category => category.id === b.categoryId)?.name ?? '';
+
+        if (categoryA !== categoryB) {
+          return categoryA.localeCompare(categoryB);
+        }
+
+        return a.name.localeCompare(b.name);
+      }),
+    [habits, categories]
   );
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
 
   const loadData = async () => {
     try {
@@ -85,20 +101,20 @@ export default function CategoriesScreen() {
     setCategoryName('');
     setSelectedColour(colourOptions[0]);
     setEditingCategoryId(null);
-    setShowCategoryForm(false);
   };
 
   const resetHabitForm = () => {
     setHabitName('');
     setSelectedCategoryId(null);
     setEditingHabitId(null);
-    setShowHabitForm(false);
+  };
+
+  const getCategory = (categoryId: number) => {
+    return categories.find(category => category.id === categoryId) ?? null;
   };
 
   const handleSaveCategory = async () => {
-    const trimmedName = categoryName.trim();
-
-    if (!trimmedName) {
+    if (!categoryName.trim()) {
       Alert.alert('Missing name', 'Enter a category name');
       return;
     }
@@ -108,13 +124,13 @@ export default function CategoriesScreen() {
         await db
           .update(categoriesTable)
           .set({
-            name: trimmedName,
+            name: categoryName.trim(),
             colour: selectedColour,
           })
           .where(eq(categoriesTable.id, editingCategoryId));
       } else {
         await db.insert(categoriesTable).values({
-          name: trimmedName,
+          name: categoryName.trim(),
           colour: selectedColour,
         });
       }
@@ -131,16 +147,17 @@ export default function CategoriesScreen() {
     setCategoryName(category.name);
     setSelectedColour(category.colour);
     setEditingCategoryId(category.id);
-    setShowCategoryForm(true);
+
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
   };
 
-  const handleDeleteCategory = async (categoryId: number) => {
+  const handleDeleteCategory = (categoryId: number) => {
     const linkedHabits = habits.filter(habit => habit.categoryId === categoryId);
 
     if (linkedHabits.length > 0) {
       Alert.alert(
         'Category in use',
-        'Move or delete the habits in this category first'
+        'Delete or move the habits in this category first'
       );
       return;
     }
@@ -164,15 +181,13 @@ export default function CategoriesScreen() {
   };
 
   const handleSaveHabit = async () => {
-    const trimmedName = habitName.trim();
-
-    if (!trimmedName) {
+    if (!habitName.trim()) {
       Alert.alert('Missing name', 'Enter a habit name');
       return;
     }
 
     if (!selectedCategoryId) {
-      Alert.alert('Missing category', 'Choose a category for the habit');
+      Alert.alert('Missing category', 'Choose a category first');
       return;
     }
 
@@ -181,13 +196,13 @@ export default function CategoriesScreen() {
         await db
           .update(habitsTable)
           .set({
-            name: trimmedName,
+            name: habitName.trim(),
             categoryId: selectedCategoryId,
           })
           .where(eq(habitsTable.id, editingHabitId));
       } else {
         await db.insert(habitsTable).values({
-          name: trimmedName,
+          name: habitName.trim(),
           categoryId: selectedCategoryId,
           createdAt: new Date().toISOString(),
         });
@@ -205,453 +220,409 @@ export default function CategoriesScreen() {
     setHabitName(habit.name);
     setSelectedCategoryId(habit.categoryId);
     setEditingHabitId(habit.id);
-    setShowHabitForm(true);
+
+    scrollRef.current?.scrollTo({ y: 260, animated: true });
   };
 
-  const handleDeleteHabit = async (habitId: number) => {
-    try {
-      const existingLogs = await db
-        .select()
-        .from(habitLogsTable)
-        .where(eq(habitLogsTable.habitId, habitId));
-
-      if (existingLogs.length > 0) {
-        Alert.alert(
-          'Habit has logs',
-          'Delete the related activity logs first'
-        );
-        return;
-      }
-
-      Alert.alert('Delete habit', 'Are you sure?', [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await db.delete(habitsTable).where(eq(habitsTable.id, habitId));
-              await loadData();
-            } catch (error) {
-              console.error(error);
-              Alert.alert('Error', 'Could not delete habit');
-            }
-          },
+  const handleDeleteHabit = (habitId: number) => {
+    Alert.alert('Delete habit', 'Are you sure?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await db.delete(habitsTable).where(eq(habitsTable.id, habitId));
+            await loadData();
+          } catch (error) {
+            console.error(error);
+            Alert.alert('Error', 'Could not delete habit');
+          }
         },
-      ]);
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'Could not check habit logs');
-    }
-  };
-
-  const getCategoryName = (categoryId: number) => {
-    const match = categories.find(category => category.id === categoryId);
-    return match?.name ?? 'Unknown';
-  };
-
-  const getCategoryColour = (categoryId: number) => {
-    const match = categories.find(category => category.id === categoryId);
-    return match?.colour ?? '#7c927d';
+      },
+    ]);
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      ref={scrollRef}
+      style={styles.container}
+      contentContainerStyle={styles.content}
+    >
       <Text style={styles.heading}>Categories</Text>
-      <Text style={styles.subheading}>Organise your golf habits properly</Text>
+      <Text style={styles.subheading}>Manage categories and habits</Text>
 
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Category list</Text>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => {
-            resetCategoryForm();
-            setShowCategoryForm(true);
-          }}
-        >
-          <Text style={styles.actionButtonText}>Add category</Text>
-        </TouchableOpacity>
+      <View style={styles.panel}>
+        <Text style={styles.panelTitle}>
+          {editingCategoryId ? 'Edit category' : 'New category'}
+        </Text>
+
+        <FormField
+          label="Category name"
+          placeholder="e.g. Practice"
+          value={categoryName}
+          onChangeText={setCategoryName}
+        />
+
+        <Text style={styles.label}>Colour</Text>
+        <View style={styles.colourRow}>
+          {colourOptions.map(colour => {
+            const active = selectedColour === colour;
+
+            return (
+              <TouchableOpacity
+                key={colour}
+                style={[
+                  styles.colourCircle,
+                  { backgroundColor: colour },
+                  active && styles.colourCircleActive,
+                ]}
+                onPress={() => setSelectedColour(colour)}
+              />
+            );
+          })}
+        </View>
+
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.saveButton} onPress={handleSaveCategory}>
+            <Text style={styles.saveButtonText}>
+              {editingCategoryId ? 'Save changes' : 'Save category'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={resetCategoryForm}
+          >
+            <Text style={styles.cancelButtonText}>Clear</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {showCategoryForm ? (
-        <View style={styles.panel}>
-          <Text style={styles.panelTitle}>
-            {editingCategoryId ? 'Edit category' : 'New category'}
-          </Text>
+      <View style={styles.panel}>
+        <Text style={styles.panelTitle}>
+          {editingHabitId ? 'Edit habit' : 'New habit'}
+        </Text>
 
-          <FormField
-            label="Category name"
-            placeholder="e.g. Practice"
-            value={categoryName}
-            onChangeText={setCategoryName}
-          />
+        <FormField
+          label="Habit name"
+          placeholder="e.g. Range Session"
+          value={habitName}
+          onChangeText={setHabitName}
+        />
 
-          <Text style={styles.label}>Choose colour</Text>
-          <View style={styles.colourRow}>
-            {colourOptions.map(colour => {
-              const active = selectedColour === colour;
+        <Text style={styles.label}>Choose category</Text>
+        <View style={styles.selectorWrap}>
+          {sortedCategories.map(category => {
+            const active = selectedCategoryId === category.id;
 
-              return (
-                <TouchableOpacity
-                  key={colour}
+            return (
+              <TouchableOpacity
+                key={category.id}
+                style={[
+                  styles.selectorChip,
+                  active && styles.selectorChipActive,
+                ]}
+                onPress={() => setSelectedCategoryId(category.id)}
+              >
+                <View
                   style={[
-                    styles.colourChip,
-                    { backgroundColor: colour },
-                    active && styles.colourChipActive,
+                    styles.selectorDot,
+                    { backgroundColor: category.colour },
                   ]}
-                  onPress={() => setSelectedColour(colour)}
                 />
-              );
-            })}
-          </View>
-
-          <View style={styles.formActions}>
-            <TouchableOpacity style={styles.saveButton} onPress={handleSaveCategory}>
-              <Text style={styles.saveButtonText}>
-                {editingCategoryId ? 'Save changes' : 'Save category'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.cancelButton} onPress={resetCategoryForm}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ) : null}
-
-      {sortedCategories.length === 0 ? (
-        <View style={styles.emptyCard}>
-          <Text style={styles.emptyText}>No categories yet</Text>
-        </View>
-      ) : (
-        sortedCategories.map(category => (
-          <View key={category.id} style={styles.card}>
-            <View style={styles.cardMain}>
-              <View
-                style={[styles.dot, { backgroundColor: category.colour }]}
-              />
-              <View style={styles.cardText}>
-                <Text style={styles.cardTitle}>{category.name}</Text>
-                <Text style={styles.cardMeta}>Colour selected</Text>
-              </View>
-            </View>
-
-            <View style={styles.cardActions}>
-              <TouchableOpacity onPress={() => handleEditCategory(category)}>
-                <Text style={styles.editText}>Edit</Text>
+                <Text
+                  style={[
+                    styles.selectorText,
+                    active && styles.selectorTextActive,
+                  ]}
+                >
+                  {category.name}
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDeleteCategory(category.id)}>
-                <Text style={styles.deleteText}>Delete</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))
-      )}
+            );
+          })}
+        </View>
 
-      <View style={[styles.sectionHeader, styles.spacedSection]}>
-        <Text style={styles.sectionTitle}>Habits</Text>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => {
-            resetHabitForm();
-            setShowHabitForm(true);
-          }}
-        >
-          <Text style={styles.actionButtonText}>Add habit</Text>
-        </TouchableOpacity>
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.saveButton} onPress={handleSaveHabit}>
+            <Text style={styles.saveButtonText}>
+              {editingHabitId ? 'Save changes' : 'Save habit'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={resetHabitForm}
+          >
+            <Text style={styles.cancelButtonText}>Clear</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {showHabitForm ? (
-        <View style={styles.panel}>
-          <Text style={styles.panelTitle}>
-            {editingHabitId ? 'Edit habit' : 'New habit'}
-          </Text>
+      <View style={styles.listSection}>
+        <Text style={styles.sectionTitle}>Current categories</Text>
 
-          <FormField
-            label="Habit name"
-            placeholder="e.g. Range Session"
-            value={habitName}
-            onChangeText={setHabitName}
-          />
+        {sortedCategories.length === 0 ? (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyText}>No categories yet</Text>
+          </View>
+        ) : (
+          sortedCategories.map(category => (
+            <View key={category.id} style={styles.card}>
+              <View style={styles.cardInfo}>
+                <View
+                  style={[styles.dot, { backgroundColor: category.colour }]}
+                />
+                <Text style={styles.cardTitle}>{category.name}</Text>
+              </View>
 
-          <Text style={styles.label}>Assign category</Text>
-          <View style={styles.selectorWrap}>
-            {sortedCategories.map(category => {
-              const active = selectedCategoryId === category.id;
-
-              return (
-                <TouchableOpacity
-                  key={category.id}
-                  style={[
-                    styles.selectorChip,
-                    active && styles.selectorChipActive,
-                  ]}
-                  onPress={() => setSelectedCategoryId(category.id)}
-                >
-                  <View
-                    style={[styles.selectorDot, { backgroundColor: category.colour }]}
-                  />
-                  <Text
-                    style={[
-                      styles.selectorText,
-                      active && styles.selectorTextActive,
-                    ]}
-                  >
-                    {category.name}
-                  </Text>
+              <View style={styles.cardActions}>
+                <TouchableOpacity onPress={() => handleEditCategory(category)}>
+                  <Text style={styles.editText}>Edit</Text>
                 </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          <View style={styles.formActions}>
-            <TouchableOpacity style={styles.saveButton} onPress={handleSaveHabit}>
-              <Text style={styles.saveButtonText}>
-                {editingHabitId ? 'Save changes' : 'Save habit'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.cancelButton} onPress={resetHabitForm}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ) : null}
-
-      {sortedHabits.length === 0 ? (
-        <View style={styles.emptyCard}>
-          <Text style={styles.emptyText}>No habits yet</Text>
-        </View>
-      ) : (
-        sortedHabits.map(habit => (
-          <View key={habit.id} style={styles.card}>
-            <View style={styles.cardMain}>
-              <View
-                style={[styles.dot, { backgroundColor: getCategoryColour(habit.categoryId) }]}
-              />
-              <View style={styles.cardText}>
-                <Text style={styles.cardTitle}>{habit.name}</Text>
-                <Text style={styles.cardMeta}>{getCategoryName(habit.categoryId)}</Text>
+                <TouchableOpacity onPress={() => handleDeleteCategory(category.id)}>
+                  <Text style={styles.deleteText}>Delete</Text>
+                </TouchableOpacity>
               </View>
             </View>
+          ))
+        )}
+      </View>
 
-            <View style={styles.cardActions}>
-              <TouchableOpacity onPress={() => handleEditHabit(habit)}>
-                <Text style={styles.editText}>Edit</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDeleteHabit(habit.id)}>
-                <Text style={styles.deleteText}>Delete</Text>
-              </TouchableOpacity>
-            </View>
+      <View style={styles.listSection}>
+        <Text style={styles.sectionTitle}>Current habits</Text>
+
+        {sortedHabits.length === 0 ? (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyText}>No habits yet</Text>
           </View>
-        ))
-      )}
+        ) : (
+          sortedHabits.map(habit => {
+            const category = getCategory(habit.categoryId);
+
+            return (
+              <View key={habit.id} style={styles.card}>
+                <View style={styles.cardInfo}>
+                  <View
+                    style={[
+                      styles.dot,
+                      { backgroundColor: category?.colour ?? '#7c927d' },
+                    ]}
+                  />
+                  <View>
+                    <Text style={styles.cardTitle}>{habit.name}</Text>
+                    <Text style={styles.cardMeta}>
+                      {category?.name ?? 'Unknown category'}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.cardActions}>
+                  <TouchableOpacity onPress={() => handleEditHabit(habit)}>
+                    <Text style={styles.editText}>Edit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleDeleteHabit(habit.id)}>
+                    <Text style={styles.deleteText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            );
+          })
+        )}
+      </View>
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#081f08',
-  },
-  content: {
-    paddingTop: 60,
-    paddingHorizontal: 16,
-    paddingBottom: 28,
-  },
-  heading: {
-    color: '#eef6ee',
-    fontSize: 32,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  subheading: {
-    color: '#8fb58f',
-    fontSize: 14,
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  spacedSection: {
-    marginTop: 28,
-  },
-  sectionTitle: {
-    color: '#dce8dc',
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  actionButton: {
-    backgroundColor: '#1c5f27',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  actionButtonText: {
-    color: '#eef6ee',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  panel: {
-    backgroundColor: '#102d12',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#1f4824',
-  },
-  panelTitle: {
-    color: '#eef6ee',
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 14,
-  },
-  label: {
-    color: '#dce8dc',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  colourRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 14,
-  },
-  colourChip: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    marginRight: 10,
-    marginBottom: 10,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  colourChipActive: {
-    borderColor: '#eef6ee',
-  },
-  selectorWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 14,
-  },
-  selectorChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#173a19',
-    borderWidth: 1,
-    borderColor: '#244d27',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  selectorChipActive: {
-    backgroundColor: '#1f5a25',
-    borderColor: '#5faa65',
-  },
-  selectorDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 8,
-  },
-  selectorText: {
-    color: '#b8cbb8',
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  selectorTextActive: {
-    color: '#eef6ee',
-  },
-  formActions: {
-    flexDirection: 'row',
-    marginTop: 4,
-  },
-  saveButton: {
-    backgroundColor: '#2d7a38',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    marginRight: 10,
-  },
-  saveButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  cancelButton: {
-    backgroundColor: '#1a2b1b',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-  },
-  cancelButtonText: {
-    color: '#d6dfd6',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  emptyCard: {
-    backgroundColor: '#102d12',
-    borderRadius: 14,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: '#1f4824',
-  },
-  emptyText: {
-    color: '#89a589',
-    fontSize: 14,
-  },
-  card: {
-    backgroundColor: '#102d12',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#1f4824',
-  },
-  cardMain: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginTop: 4,
-    marginRight: 12,
-  },
-  cardText: {
-    flex: 1,
-  },
-  cardTitle: {
-    color: '#eef6ee',
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 3,
-  },
-  cardMeta: {
-    color: '#8fb58f',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  cardActions: {
-    flexDirection: 'row',
-  },
-  editText: {
-    color: '#9cd19f',
-    fontSize: 14,
-    fontWeight: '600',
-    marginRight: 18,
-  },
-  deleteText: {
-    color: '#f28d8d',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});
+const createStyles = (theme: ReturnType<typeof useAppTheme>['theme']) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    content: {
+      paddingTop: 60,
+      paddingHorizontal: 16,
+      paddingBottom: 28,
+    },
+    heading: {
+      color: theme.text,
+      fontSize: 32,
+      fontWeight: '700',
+      marginBottom: 6,
+    },
+    subheading: {
+      color: theme.textMuted,
+      fontSize: 14,
+      marginBottom: 24,
+    },
+    panel: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    panelTitle: {
+      color: theme.text,
+      fontSize: 18,
+      fontWeight: '700',
+      marginBottom: 14,
+    },
+    label: {
+      color: theme.text,
+      fontSize: 13,
+      fontWeight: '600',
+      marginBottom: 8,
+    },
+    colourRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginBottom: 14,
+    },
+    colourCircle: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      marginRight: 10,
+      marginBottom: 10,
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    colourCircleActive: {
+      borderColor: theme.text,
+    },
+    selectorWrap: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginBottom: 14,
+    },
+    selectorChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.chipBackground,
+      borderWidth: 1,
+      borderColor: theme.chipBorder,
+      borderRadius: 999,
+      paddingHorizontal: 12,
+      paddingVertical: 9,
+      marginRight: 8,
+      marginBottom: 8,
+    },
+    selectorChipActive: {
+      backgroundColor: theme.chipActiveBackground,
+      borderColor: theme.chipActiveBorder,
+    },
+    selectorDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      marginRight: 8,
+    },
+    selectorText: {
+      color: theme.textSoft,
+      fontSize: 13,
+      fontWeight: '500',
+    },
+    selectorTextActive: {
+      color: theme.text,
+    },
+    actions: {
+      flexDirection: 'row',
+      marginTop: 4,
+    },
+    saveButton: {
+      backgroundColor: theme.primary,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 11,
+      marginRight: 10,
+    },
+    saveButtonText: {
+      color: theme.primaryText,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    cancelButton: {
+      backgroundColor: theme.secondaryButton,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 11,
+    },
+    cancelButtonText: {
+      color: theme.secondaryButtonText,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    listSection: {
+      marginBottom: 20,
+    },
+    sectionTitle: {
+      color: theme.text,
+      fontSize: 20,
+      fontWeight: '700',
+      marginBottom: 12,
+    },
+    emptyCard: {
+      backgroundColor: theme.surface,
+      borderRadius: 14,
+      padding: 18,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    emptyText: {
+      color: theme.textMuted,
+      fontSize: 14,
+    },
+    card: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: theme.border,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+    },
+    cardInfo: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      flex: 1,
+      marginRight: 10,
+    },
+    dot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      marginTop: 4,
+      marginRight: 12,
+    },
+    cardTitle: {
+      color: theme.text,
+      fontSize: 16,
+      fontWeight: '700',
+      marginBottom: 3,
+    },
+    cardMeta: {
+      color: theme.textMuted,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    cardActions: {
+      alignItems: 'flex-end',
+    },
+    editText: {
+      color: theme.good,
+      fontSize: 13,
+      fontWeight: '600',
+      marginBottom: 8,
+    },
+    deleteText: {
+      color: theme.danger,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+  });

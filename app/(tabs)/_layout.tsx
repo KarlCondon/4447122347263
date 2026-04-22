@@ -1,16 +1,19 @@
 import { Tabs } from 'expo-router';
+import { useAppTheme } from '../../lib/theme';
 
 export default function TabLayout() {
+  const { theme } = useAppTheme();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#0f1f0f',
-          borderTopColor: '#1b3a1b',
+          backgroundColor: theme.surface,
+          borderTopColor: theme.border,
         },
-        tabBarActiveTintColor: '#81c784',
-        tabBarInactiveTintColor: '#4a6741',
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: theme.textSoft,
       }}
     >
       <Tabs.Screen name="index" options={{ title: 'Activity' }} />

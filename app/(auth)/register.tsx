@@ -14,8 +14,12 @@ import FormField from '../../components/FormField';
 import { db } from '../../db/client';
 import { users } from '../../db/schema';
 import { setSessionUserId } from '../../lib/session';
+import { useAppTheme } from '../../lib/theme';
 
 export default function RegisterScreen() {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -102,43 +106,44 @@ export default function RegisterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0f1f0f',
-  },
-  inner: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 28,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#e8f5e9',
-    marginBottom: 6,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#81c784',
-    marginBottom: 32,
-  },
-  button: {
-    backgroundColor: '#2e7d32',
-    borderRadius: 10,
-    paddingVertical: 15,
-    alignItems: 'center',
-    marginTop: 6,
-    marginBottom: 20,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  link: {
-    color: '#81c784',
-    textAlign: 'center',
-    fontSize: 14,
-  },
-});
+const createStyles = (theme: ReturnType<typeof useAppTheme>['theme']) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    inner: {
+      flex: 1,
+      justifyContent: 'center',
+      paddingHorizontal: 28,
+    },
+    title: {
+      fontSize: 32,
+      fontWeight: '700',
+      color: theme.text,
+      marginBottom: 6,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: theme.textMuted,
+      marginBottom: 32,
+    },
+    button: {
+      backgroundColor: theme.primary,
+      borderRadius: 10,
+      paddingVertical: 15,
+      alignItems: 'center',
+      marginTop: 6,
+      marginBottom: 20,
+    },
+    buttonText: {
+      color: theme.primaryText,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    link: {
+      color: theme.textMuted,
+      textAlign: 'center',
+      fontSize: 14,
+    },
+  });

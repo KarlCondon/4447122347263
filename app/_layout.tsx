@@ -1,21 +1,30 @@
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { seedIfEmpty } from '../db/seed';
+import { ThemeProvider } from '../lib/theme';
 
-export default function RootLayout() {
-  const [ready, setReady] = useState(false);
+function AppNavigator() {
+  const [seeded, setSeeded] = useState(false);
 
   useEffect(() => {
-    seedIfEmpty()
-      .catch(error => {
-        console.error('Seed failed:', error);
-      })
-      .finally(() => {
-        setReady(true);
-      });
+    seedIfEmpty().then(() => setSeeded(true));
   }, []);
 
-  if (!ready) return null;
+  if (!seeded) return null;
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="profile" />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <AppNavigator />
+    </ThemeProvider>
+  );
 }

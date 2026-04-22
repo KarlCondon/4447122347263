@@ -12,6 +12,7 @@ import {
     habitLogs as habitLogsTable,
     habits as habitsTable,
 } from '../../db/schema';
+import { useAppTheme } from '../../lib/theme';
 
 type Category = {
   id: number;
@@ -77,6 +78,9 @@ const getMonthRange = () => {
 };
 
 export default function InsightsScreen() {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [logs, setLogs] = useState<HabitLog[]>([]);
@@ -268,140 +272,141 @@ export default function InsightsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#081f08',
-  },
-  content: {
-    paddingTop: 60,
-    paddingHorizontal: 16,
-    paddingBottom: 28,
-  },
-  heading: {
-    color: '#eef6ee',
-    fontSize: 32,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  subheading: {
-    color: '#8fb58f',
-    fontSize: 14,
-    marginBottom: 24,
-  },
-  summaryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  summaryCard: {
-    width: '48%',
-    backgroundColor: '#102d12',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#1f4824',
-  },
-  summaryLabel: {
-    color: '#8fb58f',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  summaryValue: {
-    color: '#eef6ee',
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  summaryNote: {
-    color: '#b8cbb8',
-    fontSize: 12,
-  },
-  panel: {
-    backgroundColor: '#102d12',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#1f4824',
-  },
-  panelTitle: {
-    color: '#eef6ee',
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  panelSubtitle: {
-    color: '#8fb58f',
-    fontSize: 13,
-    marginBottom: 16,
-  },
-  emptyBox: {
-    backgroundColor: '#173a19',
-    borderRadius: 12,
-    padding: 14,
-  },
-  emptyText: {
-    color: '#89a589',
-    fontSize: 14,
-  },
-  barRow: {
-    marginBottom: 14,
-  },
-  barHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-    alignItems: 'center',
-  },
-  barTitleWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 8,
-  },
-  barLabel: {
-    color: '#dce8dc',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  barValue: {
-    color: '#eef6ee',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  barTrack: {
-    width: '100%',
-    height: 12,
-    backgroundColor: '#173a19',
-    borderRadius: 999,
-    overflow: 'hidden',
-  },
-  barFill: {
-    height: '100%',
-    borderRadius: 999,
-  },
-  breakdownRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1f4824',
-  },
-  breakdownLabel: {
-    color: '#dce8dc',
-    fontSize: 14,
-  },
-  breakdownValue: {
-    color: '#eef6ee',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-});
+const createStyles = (theme: ReturnType<typeof useAppTheme>['theme']) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    content: {
+      paddingTop: 60,
+      paddingHorizontal: 16,
+      paddingBottom: 28,
+    },
+    heading: {
+      color: theme.text,
+      fontSize: 32,
+      fontWeight: '700',
+      marginBottom: 6,
+    },
+    subheading: {
+      color: theme.textMuted,
+      fontSize: 14,
+      marginBottom: 24,
+    },
+    summaryGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      marginBottom: 16,
+    },
+    summaryCard: {
+      width: '48%',
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    summaryLabel: {
+      color: theme.textMuted,
+      fontSize: 13,
+      fontWeight: '600',
+      marginBottom: 8,
+    },
+    summaryValue: {
+      color: theme.text,
+      fontSize: 24,
+      fontWeight: '700',
+      marginBottom: 6,
+    },
+    summaryNote: {
+      color: theme.textSoft,
+      fontSize: 12,
+    },
+    panel: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    panelTitle: {
+      color: theme.text,
+      fontSize: 18,
+      fontWeight: '700',
+      marginBottom: 4,
+    },
+    panelSubtitle: {
+      color: theme.textMuted,
+      fontSize: 13,
+      marginBottom: 16,
+    },
+    emptyBox: {
+      backgroundColor: theme.inputBackground,
+      borderRadius: 12,
+      padding: 14,
+    },
+    emptyText: {
+      color: theme.textMuted,
+      fontSize: 14,
+    },
+    barRow: {
+      marginBottom: 14,
+    },
+    barHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+      alignItems: 'center',
+    },
+    barTitleWrap: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    dot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      marginRight: 8,
+    },
+    barLabel: {
+      color: theme.text,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    barValue: {
+      color: theme.text,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    barTrack: {
+      width: '100%',
+      height: 12,
+      backgroundColor: theme.inputBackground,
+      borderRadius: 999,
+      overflow: 'hidden',
+    },
+    barFill: {
+      height: '100%',
+      borderRadius: 999,
+    },
+    breakdownRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    breakdownLabel: {
+      color: theme.text,
+      fontSize: 14,
+    },
+    breakdownValue: {
+      color: theme.text,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+  });
