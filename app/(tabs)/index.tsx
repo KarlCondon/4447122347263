@@ -36,6 +36,10 @@ type LogEntry = {
   score: number | null;
 };
 
+const escapeCsvValue = (value: string | number | null | undefined) => {
+  return `"${String(value ?? '').replace(/"/g, '""')}"`;
+};
+
 export default function ActivityScreen() {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
@@ -132,6 +136,67 @@ export default function ActivityScreen() {
         },
       },
     ]);
+  };
+
+  const handleExportCsv = async () => {
+    if (filteredLogs.length === 0) {
+      Alert.alert('Nothing to export', 'There are no logs matching the current filters.');
+      return;
+    }
+
+    try {
+      const headers = [
+        'Habit',
+        'Category',
+        'Date',
+        'Count',
+        'Duration (mins)',
+        'Score',
+        'Notes',
+      ];
+
+      const rows = filteredLogs.map(log =>
+        [
+          log.habitName,
+          log.categoryName,
+          log.date,
+          log.count,
+          log.duration ?? '',
+          log.score ?? '',
+          log.notes ?? '',
+        ]
+          .map(escapeCsvValue)
+          .join(',')
+      );
+
+      const csvContent = [headers.join(','), ...rows].join('\n');
+
+      const FileSystem = await import('expo-file-system/legacy');
+      const Sharing = await import('expo-sharing');
+
+      const fileName = `golf-tracker-logs-${new Date().toISOString().slice(0, 10)}.csv`;
+      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+
+      await FileSystem.writeAsStringAsync(fileUri, csvContent, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+
+      const canShare = await Sharing.isAvailableAsync();
+
+      if (!canShare) {
+        Alert.alert('Export complete', `CSV saved to ${fileName}`);
+        return;
+      }
+
+      await Sharing.shareAsync(fileUri, {
+        mimeType: 'text/csv',
+        dialogTitle: 'Export activity logs',
+        UTI: 'public.comma-separated-values-text',
+      });
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Export failed', 'Could not create the CSV file.');
+    }
   };
 
   const renderItem = ({ item }: { item: LogEntry }) => (
@@ -287,9 +352,15 @@ export default function ActivityScreen() {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.clearButton} onPress={clearFilters}>
-          <Text style={styles.clearButtonText}>Clear filters</Text>
-        </TouchableOpacity>
+        <View style={styles.filterActions}>
+          <TouchableOpacity style={styles.clearButton} onPress={clearFilters}>
+            <Text style={styles.clearButtonText}>Clear filters</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.exportButton} onPress={handleExportCsv}>
+            <Text style={styles.exportButtonText}>Export CSV</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       {filteredLogs.length === 0 ? (
@@ -364,7 +435,7 @@ const createStyles = (theme: ReturnType<typeof useAppTheme>['theme']) =>
       fontWeight: '600',
     },
     filtersPanel: {
-      maxHeight: 265,
+      maxHeight: 320,
       marginBottom: 14,
     },
     filtersContent: {
@@ -419,15 +490,32 @@ const createStyles = (theme: ReturnType<typeof useAppTheme>['theme']) =>
     dateField: {
       width: '48%',
     },
+    filterActions: {
+      flexDirection: 'row',
+      marginTop: 4,
+    },
     clearButton: {
       alignSelf: 'flex-start',
       backgroundColor: theme.secondaryButton,
       borderRadius: 10,
       paddingHorizontal: 14,
       paddingVertical: 11,
+      marginRight: 10,
     },
     clearButtonText: {
       color: theme.secondaryButtonText,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    exportButton: {
+      alignSelf: 'flex-start',
+      backgroundColor: theme.primary,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 11,
+    },
+    exportButtonText: {
+      color: theme.primaryText,
       fontSize: 13,
       fontWeight: '600',
     },
